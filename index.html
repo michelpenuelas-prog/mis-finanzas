@@ -3,28 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos 2026</title>
+    <title>Control Financiero PRO 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f7f9fc; font-family: system-ui, sans-serif; padding-bottom: 80px; }
+        body { background-color: #f8fafc; font-family: system-ui, sans-serif; padding-bottom: 90px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
 
-    <div id="view-registro" class="tab-content active space-y-5">
-        <header class="bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl p-5 shadow-md text-center">
-            <p class="text-xs uppercase tracking-widest opacity-70">Nuevo Registro</p>
-            <h1 class="text-2xl font-bold mt-1">Gasto Diario</h1>
+    <div id="view-registro" class="tab-content active space-y-4">
+        <header class="bg-slate-900 text-white rounded-2xl p-5 text-center shadow-sm">
+            <h1 class="text-xl font-bold">Panel de Operaciones</h1>
+            <p class="text-xs text-slate-400 mt-1">Registra gastos diarios o corrige totales</p>
         </header>
 
-        <section class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <form id="expense-form" class="space-y-5">
+        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-4">
+            <div class="flex bg-slate-100 p-1 rounded-xl">
+                <button onclick="setModo('registrar')" id="btn-modo-reg" class="w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm transition-all">➕ Añadir Gasto</button>
+                <button onclick="setModo('editar')" id="btn-modo-edit" class="w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500 transition-all">✏️ Corregir Monto</button>
+            </div>
+
+            <form id="expense-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Categoría</label>
-                    <select id="category" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 appearance-none" required>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
+                    <select id="category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-slate-500 outline-none" required>
                         <option value="" disabled selected>Selecciona una categoría</option>
                         <option value="Agua">💧 Agua</option>
                         <option value="Saldo">📱 Saldo</option>
@@ -45,87 +50,121 @@
                 </div>
                 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Monto ($)</label>
-                    <input type="number" step="0.01" id="amount" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 font-medium text-lg focus:outline-none focus:ring-2 focus:ring-slate-500" placeholder="0.00" required>
+                    <label id="label-monto" class="block text-xs font-bold text-slate-500 uppercase mb-1">Monto a sumar ($)</label>
+                    <input type="number" step="0.01" id="amount" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-slate-500 outline-none" placeholder="0.00" required>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Nota / Descripción (Opcional)</label>
-                    <input type="text" id="note" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-500" placeholder="Ej. Despensa Ley, Salida al cine">
+                <div id="container-nota">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nota / Detalle</label>
+                    <input type="text" id="note" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-slate-500 outline-none" placeholder="Ej. Membresía, Súper Ley">
                 </div>
 
-                <button type="submit" id="btn-submit" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl shadow-sm transition-all flex justify-center items-center">
-                    <span>Registrar Gasto</span>
+                <button type="submit" id="btn-submit" class="w-full bg-slate-950 text-white font-semibold py-3.5 rounded-xl transition-all">
+                    Ejecutar Operación
                 </button>
             </form>
         </section>
         <div id="status-message" class="hidden p-4 rounded-xl text-center text-sm font-medium"></div>
     </div>
 
-    <div id="view-reporte" class="tab-content space-y-5">
-        <header class="bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl p-5 shadow-md text-center">
-            <p class="text-xs uppercase tracking-widest opacity-70">Resumen Mensual</p>
-            <h1 id="current-month-title" class="text-2xl font-bold mt-1">Gastos del Mes</h1>
+    <div id="view-reporte" class="tab-content space-y-4">
+        <header class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+                <h1 class="text-lg font-bold">Historial de Gastos</h1>
+                <select id="month-filter" onchange="cargarDatosExcel()" class="bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 font-medium outline-none border border-slate-700">
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Agosto">Agosto</option>
+                    <option value="Septiembre">Septiembre</option>
+                    <option value="Octubre">Octubre</option>
+                    <option value="Noviembre">Noviembre</option>
+                    <option value="Diciembre">Diciembre</option>
+                </select>
+            </div>
         </header>
 
-        <section class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <span class="text-xs font-bold text-gray-400 uppercase">Categoría</span>
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Acumulado</span>
-            </div>
-            <div id="report-list" class="space-y-3 divide-y divide-gray-100">
-                <p class="text-gray-400 text-sm text-center py-4">Cargando datos desde Excel...</p>
+        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+            <div id="report-list" class="space-y-2 divide-y divide-slate-100">
+                <p class="text-slate-400 text-sm text-center py-4">Cargando bitácora...</p>
             </div>
         </section>
     </div>
 
-    <div id="view-graficas" class="tab-content space-y-5">
-        <header class="bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl p-5 shadow-md text-center">
-            <p class="text-xs uppercase tracking-widest opacity-70">Análisis Visual</p>
-            <h1 class="text-2xl font-bold mt-1">Distribución</h1>
+    <div id="view-graficas" class="tab-content space-y-4">
+        <header class="bg-slate-900 text-white rounded-2xl p-4 text-center">
+            <h1 class="text-lg font-bold">Análisis Comparativo</h1>
         </header>
 
-        <section class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-            <div class="w-full relative h-64 flex items-center justify-center">
-                <canvas id="chartGastos"></canvas>
-                <p id="chart-loading" class="text-gray-400 text-sm absolute">Cargando gráfica...</p>
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2">
+            <h2 id="title-chart-men" class="text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Distribución Mensual</h2>
+            <div class="relative h-56 w-full flex items-center justify-center">
+                <canvas id="chartMensual"></canvas>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-2">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Acumulado Total del Año</h2>
+            <div class="relative h-56 w-full flex items-center justify-center">
+                <canvas id="chartAnual"></canvas>
             </div>
         </section>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl px-6 py-2 flex justify-around max-w-md mx-auto z-50">
-        <button onclick="switchTab('registro')" id="nav-registro" class="flex flex-col items-center space-y-1 text-slate-900 font-semibold">
-            <span class="text-xl">📝</span>
-            <span class="text-xs">Registrar</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-xl px-6 py-2 flex justify-around max-w-md mx-auto z-50">
+        <button onclick="switchTab('registro')" id="nav-registro" class="flex flex-col items-center space-y-0.5 text-slate-900 font-semibold">
+            <span class="text-xl">⚙️</span><span class="text-[11px]">Panel</span>
         </button>
-        <button onclick="switchTab('reporte')" id="nav-reporte" class="flex flex-col items-center space-y-1 text-gray-400 font-medium">
-            <span class="text-xl">📊</span>
-            <span class="text-xs">Reporte</span>
+        <button onclick="switchTab('reporte')" id="nav-reporte" class="flex flex-col items-center space-y-0.5 text-slate-400 font-medium">
+            <span class="text-xl">📋</span><span class="text-[11px]">Listado</span>
         </button>
-        <button onclick="switchTab('graficas')" id="nav-graficas" class="flex flex-col items-center space-y-1 text-gray-400 font-medium">
-            <span class="text-xl">🥧</span>
-            <span class="text-xs">Gráfica</span>
+        <button onclick="switchTab('graficas')" id="nav-graficas" class="flex flex-col items-center space-y-0.5 text-slate-400 font-medium">
+            <span class="text-xl">📊</span><span class="text-[11px]">Gráficas</span>
         </button>
     </nav>
 
     <script>
-        // Tu URL exacta integrada
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiHd7wBAHwCByDC-S5nWDO4SVs_lCfCfZVt4ZCsBElL2n_ksmvNC7_l1nEMshgzbun/exec";
-        let miGrafica = null;
+        let modoActual = "registrar"; 
         let datosLocales = null;
+        let chartM = null, chartA = null;
+
+        // Establecer mes actual por defecto en el filtro al cargar la página
+        const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        document.getElementById('month-filter').value = nombreMeses[new Date().getMonth()];
+
+        function setModo(modo) {
+            modoActual = modo;
+            const btnReg = document.getElementById('btn-modo-reg');
+            const btnEdit = document.getElementById('btn-modo-edit');
+            const labelMonto = document.getElementById('label-monto');
+            const containerNota = document.getElementById('container-nota');
+
+            if(modo === 'editar') {
+                btnEdit.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
+                btnReg.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
+                labelMonto.innerText = "Monto Exacto Final ($) - Reemplazará el valor previo";
+                containerNota.classList.add('hidden'); // No requiere nota para corregir
+                document.getElementById('note').required = false;
+            } else {
+                btnReg.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
+                btnEdit.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
+                labelMonto.innerText = "Monto a sumar ($)";
+                containerNota.classList.remove('hidden');
+            }
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${tabName}`).classList.add('active');
             
-            const tabs = ['registro', 'reporte', 'graficas'];
-            tabs.forEach(t => {
+            ['registro', 'reporte', 'graficas'].forEach(t => {
                 const btn = document.getElementById(`nav-${t}`);
-                if(t === tabName) {
-                    btn.className = "flex flex-col items-center space-y-1 text-slate-900 font-semibold";
-                } else {
-                    btn.className = "flex flex-col items-center space-y-1 text-gray-400 font-medium";
-                }
+                btn.className = t === tabName ? "flex flex-col items-center space-y-0.5 text-slate-900 font-semibold" : "flex flex-col items-center space-y-0.5 text-slate-400 font-medium";
             });
 
             if ((tabName === 'reporte' || tabName === 'graficas') && !datosLocales) {
@@ -133,126 +172,104 @@
             }
         }
 
-        // Formulario POST
+        // Registrar o Editar (POST)
         document.getElementById('expense-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btn-submit');
             const statusMsg = document.getElementById('status-message');
             
             btnSubmit.disabled = true;
-            btnSubmit.innerText = "Enviando...";
+            btnSubmit.innerText = "Procesando en Excel...";
             statusMsg.classList.add('hidden');
 
             fetch(WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors', 
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    categoria: document.getElementById('category').value, 
+                body: JSON.stringify({
+                    accion: modoActual,
+                    categoria: document.getElementById('category').value,
                     monto: parseFloat(document.getElementById('amount').value),
                     nota: document.getElementById('note').value.trim()
                 })
             })
             .then(() => {
-                statusMsg.className = "mt-4 p-4 rounded-xl text-center text-sm font-medium bg-emerald-50 text-emerald-700 block";
-                statusMsg.innerText = `¡Éxito! Gasto registrado correctamente.`;
+                statusMsg.className = "p-4 rounded-xl text-center text-sm font-medium bg-emerald-50 text-emerald-700 block";
+                statusMsg.innerText = modoActual === 'editar' ? "¡Monto corregido con éxito!" : "¡Gasto sumado correctamente!";
                 document.getElementById('expense-form').reset();
-                datosLocales = null; 
+                datosLocales = null; // Forzar recarga
             })
-            .catch(error => {
-                statusMsg.className = "mt-4 p-4 rounded-xl text-center text-sm font-medium bg-rose-50 text-rose-700 block";
-                statusMsg.innerText = "Error al registrar. Intenta de nuevo.";
+            .catch(() => {
+                statusMsg.className = "p-4 rounded-xl text-center text-sm font-medium bg-rose-50 text-rose-700 block";
+                statusMsg.innerText = "Error en el servidor.";
             })
             .finally(() => {
                 btnSubmit.disabled = false;
-                btnSubmit.innerText = "Registrar Gasto";
+                btnSubmit.innerText = "Ejecutar Operación";
             });
         });
 
-        // Cargar datos actuales corregido para evitar bloqueo CORS de Google
+        // Obtener datos filtrados por mes (GET)
         function cargarDatosExcel() {
-            // El truco definitivo: Añadimos un parámetro aleatorio para engañar el bloqueo del navegador
-            const urlConFiltro = WEB_APP_URL + "?nocache=" + new Date().getTime();
-            
-            fetch(urlConFiltro)
+            const mesSeleccionado = document.getElementById('month-filter').value;
+            const urlFinal = `${WEB_APP_URL}?mes=${mesSeleccionado}&nocache=${new Date().getTime()}`;
+
+            fetch(urlFinal)
             .then(res => res.json())
             .then(data => {
-                if (data.error) {
-                    console.error("Error devuelto por script:", data.error);
-                    document.getElementById('report-list').innerHTML = `<p class="text-rose-500 text-center text-sm">Error en la estructura de la hoja.</p>`;
-                    return;
-                }
                 datosLocales = data;
-                document.getElementById('current-month-title').innerText = `Gastos de ${data.mes}`;
-                renderizarListaReporte(data.gastos);
-                renderizarGrafica(data.gastos);
+                document.getElementById('title-chart-men').innerText = `Distribución de ${data.mesSeleccionado}`;
+                renderizarLista(data.gastosMensuales);
+                renderizarGraficas(data.gastosMensuales, data.gastosAnuales);
             })
-            .catch(err => {
-                console.error("Error cargando datos:", err);
-                document.getElementById('report-list').innerHTML = `<p class="text-rose-500 text-center text-sm">Error de conexión. Revisa los permisos de Apps Script.</p>`;
+            .catch(() => {
+                document.getElementById('report-list').innerHTML = `<p class="text-rose-500 text-center text-sm py-4">Error de lectura de permisos.</p>`;
             });
         }
 
-        function renderizarListaReporte(gastos) {
+        function renderizarLista(gastos) {
             const container = document.getElementById('report-list');
             container.innerHTML = "";
             
-            if(!gastos || gastos.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-sm text-center py-4">No hay gastos en este mes.</p>`;
-                return;
-            }
-
             gastos.forEach(g => {
                 const fila = document.createElement('div');
-                fila.className = "flex justify-between items-center py-3 text-sm";
+                fila.className = "py-3 text-sm flex flex-col space-y-1";
                 fila.innerHTML = `
-                    <span class="font-medium text-gray-700">${g.categoria}</span>
-                    <span class="font-bold text-slate-900">$${g.total.toFixed(2)}</span>
+                    <div class="flex justify-between items-center font-medium">
+                        <span class="text-slate-700">${g.categoria}</span>
+                        <span class="text-slate-900 font-bold">$${g.total.toLocaleString('es-MX', {minimumFractionDigits:2})}</span>
+                    </div>
                 `;
                 container.appendChild(fila);
             });
         }
 
-        function renderizarGrafica(gastos) {
-            const loadingText = document.getElementById('chart-loading');
-            if (loadingText) loadingText.style.display = 'none';
+        function renderizarGraficas(mensuales, anuales) {
+            const activosM = mensuales.filter(g => g.total > 0);
+            const activosA = anuales.filter(g => g.total > 0);
 
-            if(!gastos) return;
-            const gastosActivos = gastos.filter(g => g.total > 0);
-            
-            const etiquetas = gastosActivos.map(g => g.categoria);
-            const montos = gastosActivos.map(g => g.total);
-
-            const ctx = document.getElementById('chartGastos').getContext('2d');
-            
-            if(miGrafica) {
-                miGrafica.destroy();
-            }
-
-            miGrafica = new Chart(ctx, {
+            // 1. Configuración Gráfica Mensual
+            const ctxM = document.getElementById('chartMensual').getContext('2d');
+            if(chartM) chartM.destroy();
+            chartM = new Chart(ctxM, {
                 type: 'doughnut',
                 data: {
-                    labels: etiquetas,
-                    datasets: [{
-                        data: montos,
-                        backgroundColor: [
-                            '#475569', '#1e293b', '#0f172a', '#334155', '#64748b',
-                            '#0284c7', '#0369a1', '#0f766e', '#14b8a6', '#0d9488',
-                            '#10b981', '#059669', '#b45309', '#d97706', '#e11d48'
-                        ],
-                        borderWidth: 2
-                    }]
+                    labels: activosM.map(g => `${g.categoria} ($${g.total.toFixed(0)})`),
+                    datasets: [{ data: activosM.map(g => g.total), backgroundColor: ['#1e293b','#334155','#475569','#0284c7','#0369a1','#0d9488','#10b981','#b45309','#e11d48','#64748b'] }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 12, font: { size: 11 } }
-                        }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            // 2. Configuración Gráfica Anual
+            const ctxA = document.getElementById('chartAnual').getContext('2d');
+            if(chartA) chartA.destroy();
+            chartA = new Chart(ctxA, {
+                type: 'pie',
+                data: {
+                    labels: activosA.map(g => `${g.categoria} ($${g.total.toFixed(0)})`),
+                    datasets: [{ data: activosA.map(g => g.total), backgroundColor: ['#0f172a','#1e293b','#334155','#0284c7','#0369a1','#0d9488','#10b981','#b45309','#e11d48','#64748b'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
             });
         }
     </script>
