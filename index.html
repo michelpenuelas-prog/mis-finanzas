@@ -68,28 +68,33 @@
     </div>
 
     <div id="view-reporte" class="tab-content space-y-4">
-        <header class="bg-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-                <h1 class="text-lg font-bold">Historial de Gastos</h1>
-                <select id="month-filter" onchange="cargarDatosExcel()" class="bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 font-medium outline-none border border-slate-700">
-                    <option value="Enero">Enero</option>
-                    <option value="Febrero">Febrero</option>
-                    <option value="Marzo">Marzo</option>
-                    <option value="Abril">Abril</option>
-                    <option value="Mayo">Mayo</option>
-                    <option value="Junio">Junio</option>
-                    <option value="Julio">Julio</option>
-                    <option value="Agosto">Agosto</option>
-                    <option value="Septiembre">Septiembre</option>
-                    <option value="Octubre">Octubre</option>
-                    <option value="Noviembre">Noviembre</option>
-                    <option value="Diciembre">Diciembre</option>
-                </select>
+        <header class="bg-slate-900 text-white rounded-2xl p-4 shadow-sm flex justify-between items-center">
+            <div>
+                <h1 class="text-base font-bold">Historial mensual</h1>
+                <p class="text-[11px] text-slate-400">Toca una categoría para ver detalles</p>
             </div>
+            <select id="month-filter" onchange="cargarDatosExcel()" class="bg-slate-800 text-white text-xs rounded-lg px-2 py-1.5 font-medium outline-none border border-slate-700">
+                <option value="Enero">Enero</option>
+                <option value="Febrero">Febrero</option>
+                <option value="Marzo">Marzo</option>
+                <option value="Abril">Abril</option>
+                <option value="Mayo">Mayo</option>
+                <option value="Junio">Junio</option>
+                <option value="Julio">Julio</option>
+                <option value="Agosto">Agosto</option>
+                <option value="Septiembre">Septiembre</option>
+                <option value="Octubre">Octubre</option>
+                <option value="Noviembre">Noviembre</option>
+                <option value="Diciembre">Diciembre</option>
+            </select>
         </header>
 
-        <section class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-            <div id="report-list" class="space-y-2 divide-y divide-slate-100">
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-100 mb-2 px-2">
+                <span>Categoría</span>
+                <span>Total</span>
+            </div>
+            <div id="report-list" class="space-y-1">
                 <p class="text-slate-400 text-sm text-center py-4">Cargando bitácora...</p>
             </div>
         </section>
@@ -119,10 +124,10 @@
         <button onclick="switchTab('registro')" id="nav-registro" class="flex flex-col items-center space-y-0.5 text-slate-900 font-semibold">
             <span class="text-xl">⚙️</span><span class="text-[11px]">Panel</span>
         </button>
-        <button onclick="switchTab('reporte')" id="nav-reporte" class="flex flex-col items-center space-y-0.5 text-slate-400 font-medium">
+        <button onclick="switchTab('reporte')" id="nav-reporte" class="flex flex-col items-center space-y-0.5 text-gray-400 font-medium">
             <span class="text-xl">📋</span><span class="text-[11px]">Listado</span>
         </button>
-        <button onclick="switchTab('graficas')" id="nav-graficas" class="flex flex-col items-center space-y-0.5 text-slate-400 font-medium">
+        <button onclick="switchTab('graficas')" id="nav-graficas" class="flex flex-col items-center space-y-0.5 text-gray-400 font-medium">
             <span class="text-xl">📊</span><span class="text-[11px]">Gráficas</span>
         </button>
     </nav>
@@ -133,7 +138,7 @@
         let datosLocales = null;
         let chartM = null, chartA = null;
 
-        // Establecer mes actual por defecto en el filtro al cargar la página
+        // Configurar mes actual por defecto en el filtro
         const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         document.getElementById('month-filter').value = nombreMeses[new Date().getMonth()];
 
@@ -147,9 +152,8 @@
             if(modo === 'editar') {
                 btnEdit.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
                 btnReg.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
-                labelMonto.innerText = "Monto Exacto Final ($) - Reemplazará el valor previo";
-                containerNota.classList.add('hidden'); // No requiere nota para corregir
-                document.getElementById('note').required = false;
+                labelMonto.innerText = "Monto Exacto Final ($) - Sobreescribirá el Excel";
+                containerNota.classList.add('hidden');
             } else {
                 btnReg.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
                 btnEdit.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
@@ -164,10 +168,10 @@
             
             ['registro', 'reporte', 'graficas'].forEach(t => {
                 const btn = document.getElementById(`nav-${t}`);
-                btn.className = t === tabName ? "flex flex-col items-center space-y-0.5 text-slate-900 font-semibold" : "flex flex-col items-center space-y-0.5 text-slate-400 font-medium";
+                btn.className = t === tabName ? "flex flex-col items-center space-y-0.5 text-slate-900 font-semibold" : "flex flex-col items-center space-y-0.5 text-gray-400 font-medium";
             });
 
-            if ((tabName === 'reporte' || tabName === 'graficas') && !datosLocales) {
+            if (tabName === 'reporte' || tabName === 'graficas') {
                 cargarDatosExcel();
             }
         }
@@ -179,7 +183,7 @@
             const statusMsg = document.getElementById('status-message');
             
             btnSubmit.disabled = true;
-            btnSubmit.innerText = "Procesando en Excel...";
+            btnSubmit.innerText = "Modificando hoja...";
             statusMsg.classList.add('hidden');
 
             fetch(WEB_APP_URL, {
@@ -195,9 +199,9 @@
             })
             .then(() => {
                 statusMsg.className = "p-4 rounded-xl text-center text-sm font-medium bg-emerald-50 text-emerald-700 block";
-                statusMsg.innerText = modoActual === 'editar' ? "¡Monto corregido con éxito!" : "¡Gasto sumado correctamente!";
+                statusMsg.innerText = "¡Operación completada con éxito!";
                 document.getElementById('expense-form').reset();
-                datosLocales = null; // Forzar recarga
+                datosLocales = null; 
             })
             .catch(() => {
                 statusMsg.className = "p-4 rounded-xl text-center text-sm font-medium bg-rose-50 text-rose-700 block";
@@ -209,7 +213,7 @@
             });
         });
 
-        // Obtener datos filtrados por mes (GET)
+        // Obtener datos dinámicos con el filtro mensual (GET)
         function cargarDatosExcel() {
             const mesSeleccionado = document.getElementById('month-filter').value;
             const urlFinal = `${WEB_APP_URL}?mes=${mesSeleccionado}&nocache=${new Date().getTime()}`;
@@ -223,32 +227,49 @@
                 renderizarGraficas(data.gastosMensuales, data.gastosAnuales);
             })
             .catch(() => {
-                document.getElementById('report-list').innerHTML = `<p class="text-rose-500 text-center text-sm py-4">Error de lectura de permisos.</p>`;
+                document.getElementById('report-list').innerHTML = `<p class="text-rose-500 text-center text-sm py-4">Error al conectar con la hoja de Google.</p>`;
             });
         }
 
+        // Renderizar la lista tipo acordeón para ver notas al hacer clic
         function renderizarLista(gastos) {
             const container = document.getElementById('report-list');
             container.innerHTML = "";
             
-            gastos.forEach(g => {
-                const fila = document.createElement('div');
-                fila.className = "py-3 text-sm flex flex-col space-y-1";
-                fila.innerHTML = `
-                    <div class="flex justify-between items-center font-medium">
-                        <span class="text-slate-700">${g.categoria}</span>
-                        <span class="text-slate-900 font-bold">$${g.total.toLocaleString('es-MX', {minimumFractionDigits:2})}</span>
+            gastos.forEach((g, index) => {
+                const itemContainer = document.createElement('div');
+                itemContainer.className = "border-b border-slate-100 last:border-0 py-1";
+                
+                itemContainer.innerHTML = `
+                    <button onclick="toggleAcordeon(${index})" class="w-full text-left py-2.5 px-2 hover:bg-slate-50 rounded-xl transition-all flex justify-between items-center text-sm font-medium text-slate-700">
+                        <span>${g.categoria}</span>
+                        <div class="space-x-1 flex items-center">
+                            <span class="font-bold text-slate-900">$${g.total.toLocaleString('es-MX', {minimumFractionDigits:2})}</span>
+                            <span class="text-xs text-slate-300">▼</span>
+                        </div>
+                    </button>
+                    <div id="acordeon-${index}" class="hidden bg-slate-50 text-xs text-slate-600 rounded-xl p-3 mt-1 mx-2 whitespace-pre-line leading-relaxed border border-slate-100 shadow-inner">
+                        ${g.notas}
                     </div>
                 `;
-                container.appendChild(fila);
+                container.appendChild(itemContainer);
             });
+        }
+
+        function toggleAcordeon(index) {
+            const el = document.getElementById(`acordeon-${index}`);
+            if(el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
         }
 
         function renderizarGraficas(mensuales, anuales) {
             const activosM = mensuales.filter(g => g.total > 0);
             const activosA = anuales.filter(g => g.total > 0);
 
-            // 1. Configuración Gráfica Mensual
+            // 1. Gráfica Mensual
             const ctxM = document.getElementById('chartMensual').getContext('2d');
             if(chartM) chartM.destroy();
             chartM = new Chart(ctxM, {
@@ -260,7 +281,7 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
             });
 
-            // 2. Configuración Gráfica Anual
+            // 2. Gráfica Anual
             const ctxA = document.getElementById('chartAnual').getContext('2d');
             if(chartA) chartA.destroy();
             chartA = new Chart(ctxA, {
