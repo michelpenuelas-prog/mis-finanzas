@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f7f9fc; font-family: system-ui, sans-serif; }
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+
+    <header class="bg-gradient-to-r from-slate-800 to-slate-950 text-white rounded-2xl p-5 shadow-md mb-6 text-center">
+        <p class="text-xs uppercase tracking-widest opacity-70">Registro de Gastos</p>
+        <h1 class="text-2xl font-bold mt-1">Presupuesto 2026</h1>
+    </header>
+
+    <section class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <form id="expense-form" class="space-y-5">
+            
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Categoría</label>
+                <select id="category" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-slate-500 appearance-none" required>
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    <option value="Agua">💧 Agua</option>
+                    <option value="Saldo">📱 Saldo</option>
+                    <option value="Seguro de auto">🛡️ Seguro de Auto</option>
+                    <option value="Pago de auto">🚗 Pago de Auto</option>
+                    <option value="Gasolina">⛽ Gasolina</option>
+                    <option value="Pago Silvia Auto">🤝 Pago Silvia Auto</option>
+                    <option value="Gym">🏋️‍♂️ Gym</option>
+                    <option value="Internet">🌐 Internet</option>
+                    <option value="Crédito HSBC">💳 Crédito HSBC</option>
+                    <option value="Crédito BBVA">💳 Crédito BBVA</option>
+                    <option value="Personal">🛍️ Personal</option>
+                    <option value="DAFI">🎓 DAFI</option>
+                    <option value="Liverpool">🏢 Liverpool</option>
+                    <option value="Oralia">🌸 Oralia</option>
+                    <option value="Otros">📦 Otros</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Monto ($)</label>
+                <input type="number" step="0.01" id="amount" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 font-medium text-lg focus:outline-none focus:ring-2 focus:ring-slate-500" placeholder="0.00" required>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Nota / Descripción (Opcional)</label>
+                <input type="text" id="note" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-500" placeholder="Ej. Despensa Ley, Salida al cine">
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full bg-slate-900 hover:bg-black text-white font-semibold py-4 rounded-xl shadow-sm transition-all flex justify-center items-center space-x-2">
+                <span>Registrar Gasto</span>
+            </button>
+        </form>
+    </section>
+
+    <div id="status-message" class="hidden mt-4 p-4 rounded-xl text-center text-sm font-medium"></div>
+
+    <script>
+        // Tu URL de Google Apps Script ya integrada:
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiHd7wBAHwCByDC-S5nWDO4SVs_lCfCfZVt4ZCsBElL2n_ksmvNC7_l1nEMshgzbun/exec";
+
+        document.getElementById('expense-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btnSubmit = document.getElementById('btn-submit');
+            const statusMsg = document.getElementById('status-message');
+            const categoria = document.getElementById('category').value;
+            const monto = document.getElementById('amount').value;
+            const nota = document.getElementById('note').value.trim();
+
+            // Bloquear botón mientras se envía
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Enviando...";
+            statusMsg.classList.add('hidden');
+
+            // Enviar datos mediante POST
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    categoria: categoria, 
+                    monto: parseFloat(monto),
+                    nota: nota
+                })
+            })
+            .then(() => {
+                // Éxito
+                statusMsg.className = "mt-4 p-4 rounded-xl text-center text-sm font-medium bg-emerald-50 text-emerald-700 block";
+                statusMsg.innerText = `¡Éxito! Se registró el gasto en ${categoria}.`;
+                document.getElementById('expense-form').reset();
+            })
+            .catch(error => {
+                // Error
+                statusMsg.className = "mt-4 p-4 rounded-xl text-center text-sm font-medium bg-rose-50 text-rose-700 block";
+                statusMsg.innerText = "Error al registrar. Intenta de nuevo.";
+                console.error(error);
+            })
+            .finally(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Registrar Gasto";
+            });
+        });
+    </script>
+</body>
+</html>
