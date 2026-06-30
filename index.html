@@ -49,6 +49,12 @@
                     </select>
                 </div>
                 
+                <!-- 📅 NUEVO CAMPO DE SELECCIÓN DE FECHA -->
+                <div id="container-fecha">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fecha del Gasto</label>
+                    <input type="date" id="expense-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-slate-500 outline-none" required>
+                </div>
+                
                 <div>
                     <label id="label-monto" class="block text-xs font-bold text-slate-500 uppercase mb-1">Monto a sumar ($)</label>
                     <input type="number" step="0.01" id="amount" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-slate-500 outline-none" placeholder="0.00" required>
@@ -138,9 +144,14 @@
         let datosLocales = null;
         let chartM = null, chartA = null;
 
-        // Configurar mes actual por defecto en el filtro
+        // Poner la fecha de hoy por defecto en el selector de fecha del formulario (Formato YYYY-MM-DD)
+        const hoy = new Date();
+        const hoyFormateado = hoy.getFullYear() + '-' + String(hoy.getMonth() + 1).padStart(2, '0') + '-' + String(hoy.getDate()).padStart(2, '0');
+        document.getElementById('expense-date').value = hoyFormateado;
+
+        // Configurar mes actual por defecto en el filtro de historial
         const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        document.getElementById('month-filter').value = nombreMeses[new Date().getMonth()];
+        document.getElementById('month-filter').value = nombreMeses[hoy.getMonth()];
 
         function setModo(modo) {
             modoActual = modo;
@@ -148,17 +159,20 @@
             const btnEdit = document.getElementById('btn-modo-edit');
             const labelMonto = document.getElementById('label-monto');
             const containerNota = document.getElementById('container-nota');
+            const containerFecha = document.getElementById('container-fecha');
 
             if(modo === 'editar') {
                 btnEdit.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
                 btnReg.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
                 labelMonto.innerText = "Monto Exacto Final ($) - Sobreescribirá el Excel";
                 containerNota.classList.add('hidden');
+                containerFecha.classList.add('hidden'); // Ocultar fecha en modo edición rápida si gustas
             } else {
                 btnReg.className = "w-1/2 text-sm font-semibold py-2 rounded-lg bg-white text-slate-900 shadow-sm";
                 btnEdit.className = "w-1/2 text-sm font-medium py-2 rounded-lg text-slate-500";
                 labelMonto.innerText = "Monto a sumar ($)";
                 containerNota.classList.remove('hidden');
+                containerFecha.classList.remove('hidden');
             }
         }
 
@@ -186,21 +200,29 @@
             btnSubmit.innerText = "Modificando hoja...";
             statusMsg.classList.add('hidden');
 
+            // Recopilar la información armada de forma estructurada
+            const payload = {
+                accion: modoActual,
+                categoria: document.getElementById('category').value,
+                monto: parseFloat(document.getElementById('amount').value),
+                fecha: document.getElementById('expense-date').value, // Envia YYYY-MM-DD
+                comentario: document.getElementById('note').value.trim() // Se envía como 'comentario' directo al Apps Script
+            };
+
             fetch(WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: modoActual,
-                    categoria: document.getElementById('category').value,
-                    monto: parseFloat(document.getElementById('amount').value),
-                    nota: document.getElementById('note').value.trim()
-                })
+                body: JSON.stringify(payload)
             })
             .then(() => {
                 statusMsg.className = "p-4 rounded-xl text-center text-sm font-medium bg-emerald-50 text-emerald-700 block";
                 statusMsg.innerText = "¡Operación completada con éxito!";
+                
+                // Reiniciar formulario y reestablecer la fecha de hoy por comodidad
                 document.getElementById('expense-form').reset();
+                document.getElementById('expense-date').value = hoyFormateado;
+                
                 datosLocales = null; 
             })
             .catch(() => {
